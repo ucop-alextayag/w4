@@ -1,3 +1,11 @@
+**************************************************************/   28732379
+*  PROGRAM: PPFEDTAX                                         */   28732379
+*  RELEASE: ___2379______ SERVICE REQUEST(S): ___102873____  */   28732379
+*  NAME:______TAYAG______ MODIFICATION DATE:  ___01/08/20__  */   28732379
+*  DESCRIPTION:                                              */   28732379
+*  CHANGE FEDERAL WITHHOLDING TAX CALCULATION BASED ON       */   28732379
+*  2020 IRS PUB 15 T.                                        */   28732379
+**************************************************************/   28732379
 **************************************************************/   28311915
 *  PROGRAM: PPFEDTAX                                         */   28311915
 *  RELEASE: ___1915______ SERVICE REQUEST(S): ____82831____  */   28311915
@@ -87,9 +95,26 @@
  77  S5                           PIC S9(4)  COMP.                PPFEDTAX
  77  S6                           PIC S9(4)  COMP.                PPFEDTAX
  77  M40020                       PIC 9(05)  VALUE 40020.         PPFEDTAX
+ 77  M40030                       PIC 9(05)  VALUE 40030.         28732379
  77  M40090                       PIC 9(05)  VALUE 40090.         69761691
  77  WK-TOT-FWT-ADJ-GRS           PIC S9(7)V99  COMP-3.           69331612
+ 77  WK-ADJ-ANNUAL-WAGE-AMT       PIC S9(7)V99  COMP-3.           28732379
+ 77  WK-ANNUAL-BASE               PIC S9(7)V99  COMP-3.           28732379
+ 77  WK-1G-AMOUNT                 PIC S9(7)V99  COMP-3.           28732379
+ 77  WK-1G-MARRIED-AMT            PIC S9(7)V99  COMP-3            28732379
+                                             VALUE 12900.         28732379
+ 77  WK-1G-OTHERWISE-AMT          PIC S9(7)V99  COMP-3            28732379
+                                             VALUE 8600.          28732379
+ 77  WK-1H-AMOUNT                 PIC S9(7)V99  COMP-3.           28732379
+ 77  WK-1I-AMOUNT                 PIC S9(7)V99  COMP-3.           28732379
+ 77  WK-1J-AMOUNT                 PIC S9(7)V99  COMP-3.           28732379
+ 77  WK-1K-AMOUNT                 PIC S9(7)V99  COMP-3.           28732379
+ 77  WK-3A-AMOUNT                 PIC S9(7)V99  COMP-3.           28732379
+ 77  WK-PERSONAL-ALLOWANCE        PIC S9(7)V99  COMP-3            28732379
+                                             VALUE 4300.          28732379
+ 77  WK-DISPLAY-AMT               PIC -9(7).99  .                 28732379
  77  WS-DED-TO-TAKE               PIC S9(7)V99  COMP-3.           69761691
+ 77  WS-NUMBER-OF-PAY-PERIODS     PIC S9(7)V99  COMP-3.           28732379
      EJECT                                                        PPFEDTAX
 ******************************************************************PPFEDTAX
 *                                                                *PPFEDTAX
@@ -115,29 +140,44 @@
  0100-FEDERAL-TAX-ROUTINE  SECTION.                               69331612
  0100-FEDERAL-TAX-DEDUCTION.                                      PPFEDTAX
      SKIP1                                                        PPFEDTAX
+     MOVE ZERO     TO WK-ADJ-ANNUAL-WAGE-AMT                      28732379
+                      WK-ANNUAL-BASE                              28732379
+                      WK-1G-AMOUNT                                28732379
+                      WK-1H-AMOUNT                                28732379
+                      WK-1I-AMOUNT                                28732379
+                      WK-1J-AMOUNT                                28732379
+                      WK-1K-AMOUNT                                28732379
+                      WK-3A-AMOUNT                                28732379
+                      WK-DISPLAY-AMT.                             28732379
+     DISPLAY '    FEDTAX CALLED.'.                                D
      MOVE  ZERO    TO KFED-FEL-FWT-DED-TO-TAKE.                   69331612
      IF      KFED-POSTDOC-FEL-NRA-GRS  > ZERO                     69331612
+             DISPLAY '      PD FEL NRA GRS...'                    D
              PERFORM  1000-POSTDOC-FEL-NRA-DED                    69331612
      END-IF.                                                      69331612
      SKIP1                                                        15611721
      IF      KFED-CT-CODE-NON-RESID-ALIEN-T                       15611721
      OR      KFED-CT-CODE-NONR-ALN-SPECCTRY                       15611721
+             DISPLAY '      NRA DED PROCESS..'                    D
              PERFORM  1500-NRA-DED-PROCESSING                     15611721
              THRU     1500-EXIT                                   15611721
      END-IF.                                                      15611721
      IF      KFED-GROSS-FWT1  < ZERO                              PPFEDTAX
+             DISPLAY '      NEGATIVE KFED-GROSS-FWT1'             D
              COMPUTE KFED-GROSS-FWT2 =                            PPFEDTAX
                      KFED-GROSS-FWT2 + KFED-GROSS-FWT1            PPFEDTAX
              MOVE ZEROS             TO KFED-GROSS-FWT1            PPFEDTAX
      END-IF.                                                      PPFEDTAX
      SKIP1                                                        PPFEDTAX
      IF      KFED-GROSS-FWT2  < ZERO                              PPFEDTAX
+             DISPLAY '      NEGATIVE KFED-GROSS-FWT2'             D
              COMPUTE KFED-GROSS-FWT1 =                            PPFEDTAX
                      KFED-GROSS-FWT1 + KFED-GROSS-FWT2            PPFEDTAX
              MOVE ZEROS             TO KFED-GROSS-FWT2            PPFEDTAX
      END-IF.                                                      PPFEDTAX
      SKIP1                                                        48861503
      IF      KFED-GROSS-FWT3  < ZERO                              48861503
+             DISPLAY '      NEGATIVE KFED-GROSS-FWT3'             D
              COMPUTE KFED-GROSS-FWT1 =                            48861503
                      KFED-GROSS-FWT1 + KFED-GROSS-FWT3            48861503
              MOVE ZEROS             TO KFED-GROSS-FWT3            48861503
@@ -153,19 +193,32 @@
          END-IF                                                   PPFEDTAX
      END-IF.                                                      PPFEDTAX
      SKIP1                                                        PPFEDTAX
+     IF KFED-TAX-PERIOD = 'B'                                     28732379
+         MOVE 26 TO WS-NUMBER-OF-PAY-PERIODS                      28732379
+     ELSE                                                         28732379
+         MOVE 12 TO WS-NUMBER-OF-PAY-PERIODS                      28732379
+     END-IF.                                                      28732379
+                                                                  28732379
      PERFORM                                                      PPFEDTAX
         VARYING S4 FROM 1 BY 1                                    PPFEDTAX
-          UNTIL XFTA-PERIOD (S4) = KFED-TAX-PERIOD                PPFEDTAX
-             OR S4 > 4                                            PPFEDTAX
+*****     UNTIL XFTA-PERIOD (S4) = KFED-TAX-PERIOD                28732379
+*****        OR S4 > 4                                            28732379
+          UNTIL XFTA-IRS-SCHEDULE (S4)                            28732379
+                                 = KFED-IRS-SCHEDULE              28732379
+             OR S4 > 2                                            28732379
      END-PERFORM.                                                 PPFEDTAX
      SKIP2                                                        PPFEDTAX
-     IF      S4 > +4                                              PPFEDTAX
+**** IF      S4 > +4                                              28732379
+     IF      S4 > +2                                              28732379
              MOVE +1 TO S4                                        PPFEDTAX
-             MOVE M40020 TO KFED-MSSG-NO                          PPFEDTAX
+****         MOVE M40020 TO KFED-MSSG-NO                          28732379
+* NO TAX TABLE TO MATCH EMPLOYEE'S PAY PERIOD, DEFAULTING TO 1ST  28732379
+             MOVE M40030 TO KFED-MSSG-NO                          28732379
+* NO TAX TABLE TO MATCH EE'S DERIVED SCHEDULE, DEFAULTING TO 1ST  28732379
      END-IF.                                                      PPFEDTAX
      SKIP1                                                        PPFEDTAX
 ******************************************************************PPFEDTAX
-*    IF  TAX PERIOD INPUT BY USER IS NOT MATCHED - DEFAULT TO THE PPFEDTAX
+*    IF THE IRS SCHEDULE PASSED   IS NOT MATCHED - DEFAULT TO THE 28732379
 *    FIRST TAX TABLE LOADED FOR THIS CYCLE - ISSUE MESSAGE TO     PPFEDTAX
 *    USER - AND CONTINUE TO PROCESSING - S4 NOW POINTS            PPFEDTAX
 *    TO THE PROPER TAX TABLE - S5 WILL LATER POINT TO THE ITEM    PPFEDTAX
@@ -177,7 +230,27 @@
          OR  KFED-AMOUNT  <  ZEROES                               PPFEDTAX
              COMPUTE KFED-BASE = KFED-GROSS-FWT1 -                PPFEDTAX
                                         KFED-REDUCTIONS-FWT       PPFEDTAX
+             COMPUTE WK-ANNUAL-BASE = KFED-BASE *                 28732379
+                                        WS-NUMBER-OF-PAY-PERIODS  28732379
+                                                                  D
+             IF  KFED-W4-2020-FORM = 1                            D
+                 DISPLAY '2020 W4 FORM'                           D
+             ELSE                                                 D
+                 DISPLAY '2019 W4 FORM'                           D
+             END-IF                                               D
+             DISPLAY 'KFED-IRS-SCHEDULE   :' KFED-IRS-SCHEDULE    D
+             MOVE KFED-GROSS-FWT1 TO WK-DISPLAY-AMT               D
+             DISPLAY 'KFED-GROSS-FWT1     :' WK-DISPLAY-AMT       D
+             MOVE KFED-REDUCTIONS-FWT TO WK-DISPLAY-AMT           D
+             DISPLAY 'KFED-REDUCTIONS-FWT :' WK-DISPLAY-AMT       D
+             MOVE KFED-BASE       TO WK-DISPLAY-AMT               D
+             DISPLAY 'KFED-BASE           :' WK-DISPLAY-AMT       D
+             DISPLAY 'KFED-FEDTAX-MARITAL :' KFED-FEDTAX-MARITAL  D
+             MOVE KFED-FEDTAX-EXEMPT TO WK-DISPLAY-AMT            D
+             DISPLAY 'KFED-FEDTAX-EXEMPT  :' WK-DISPLAY-AMT       D
+                                                                  28732379
              IF      KFED-BASE < ZEROS                            PPFEDTAX
+             DISPLAY '      NEGATIVE KFED-BASE      '             D
                      COMPUTE KFED-AMOUNT = - KFED-BASE            PPFEDTAX
                      MOVE ZEROS TO KFED-BASE                      PPFEDTAX
              ELSE                                                 PPFEDTAX
@@ -188,62 +261,137 @@
              MOVE ZEROS TO KFED-BASE                              PPFEDTAX
      END-IF.                                                      PPFEDTAX
      SKIP1                                                        PPFEDTAX
+**** ADD NEW SET OF RATES OF HEAD OF HOUSEHOLD WHICH ARE TO BE    28732379
+**** USED ONLY IF EMPLOYEE HAS W4 2020 FORM.                      28732379
+     IF      KFED-FEDTAX-MARITAL = 'H'                            28732379
+     AND     KFED-W4-2020-FORM = 1                                28732379
+             MOVE 23 TO S5                                        28732379
+             COMPUTE S6 = XFTA-NO-HEADOFH (S4) + 23               28732379
+     ELSE                                                         28732379
      IF      KFED-FEDTAX-MARITAL = 'M'                            PPFEDTAX
-     AND NOT KFED-CT-CODE-NON-RESID-ALIEN-T                       PPFEDTAX
-     AND NOT KFED-CT-CODE-NONR-ALN-SPECCTRY                       69761691
+**** NRAS WILL USE SAME SET OF TABLES SO COMMENTING OUT CONDITION.28732379
+**** AND NOT KFED-CT-CODE-NON-RESID-ALIEN-T                       28732379
+**** AND NOT KFED-CT-CODE-NONR-ALN-SPECCTRY                       28732379
              MOVE 12 TO S5                                        PPFEDTAX
              COMPUTE S6 = XFTA-NO-MARRIED (S4) + 12               PPFEDTAX
      ELSE                                                         PPFEDTAX
              MOVE  1 TO S5                                        PPFEDTAX
              COMPUTE S6 = XFTA-NO-SINGLES (S4) + 1                PPFEDTAX
+     END-IF                                                       28732379
      END-IF.                                                      PPFEDTAX
      SKIP1                                                        PPFEDTAX
 ******************************************************************15611721
-* THE STATEMENT BELOW TREATS NON-RESIDENTS (CITIZENSHIP CODE OF N)15611721
-* AS IF THEY CLAIM ONLY 1 FED WITHHOLDING EXEMPTION AND IGNORES   15611721
-* WHAT THE EMPLOYEE CLAIMED FOR WITHHOLDING.                      15611721
-* WHEREAS FOR ALL OTHER CITIZENSHIP CODES INCLUDING CITIZENSHIP   15611721
-* CODES OF 'A', FED WITHHOLDING EXEMPTION CLAIMED BY THE EMPLOYEE 15611721
-* IS USED IN THE COMPUTATION OF THE BASE SALARY AMOUNT.           15611721
+* THIS IS NOT APPLICABLE ANYMORE SO COMMENTING OUT THE CODE       28732379
+* AND REMOVING THE PREVIOUS COMMENTS.                             28732379
+*                                                                 28732379
+*                                                                 28732379
+*                                                                 28732379
+*                                                                 28732379
 ******************************************************************15611721
-     IF      KFED-CT-CODE-NON-RESID-ALIEN-T                       PPFEDTAX
-             COMPUTE KFED-BASE = KFED-BASE - XFTA-EXEMPTION (S4)  PPFEDTAX
-     ELSE                                                         PPFEDTAX
-             COMPUTE KFED-BASE = KFED-BASE                        PPFEDTAX
-                    - (XFTA-EXEMPTION (S4) * KFED-FEDTAX-EXEMPT)  PPFEDTAX
-     END-IF.                                                      PPFEDTAX
+**** IF      KFED-CT-CODE-NON-RESID-ALIEN-T                       28732379
+****         COMPUTE KFED-BASE = KFED-BASE - XFTA-EXEMPTION (S4)  28732379
+**** ELSE                                                         28732379
+****         COMPUTE KFED-BASE = KFED-BASE                        28732379
+****                - (XFTA-EXEMPTION (S4) * KFED-FEDTAX-EXEMPT)  28732379
+**** END-IF.                                                      28732379
+                                                                  28732379
+**** EMPLOYEE HAS 2020 W4 FORM                                    28732379
+     IF      KFED-W4-2020-FORM = 1                                28732379
+             COMPUTE WK-ANNUAL-BASE = WK-ANNUAL-BASE +            28732379
+                                        KFED-W4-STEP4A-AMT        28732379
+             IF  KFED-W4-STEP2C = 1                               28732379
+                 MOVE 0     TO WK-1G-AMOUNT                       28732379
+             ELSE                                                 28732379
+                 IF  KFED-FEDTAX-MARITAL = 'M'                    28732379
+                     MOVE WK-1G-MARRIED-AMT                       28732379
+                                TO WK-1G-AMOUNT                   28732379
+                 ELSE                                             28732379
+                     MOVE WK-1G-OTHERWISE-AMT                     28732379
+                                TO WK-1G-AMOUNT                   28732379
+                 END-IF                                           28732379
+             END-IF                                               28732379
+                                                                  28732379
+             COMPUTE WK-1H-AMOUNT  = KFED-W4-STEP4B-AMT +         28732379
+                                        WK-1G-AMOUNT              28732379
+                                                                  28732379
+             COMPUTE WK-ADJ-ANNUAL-WAGE-AMT =                     28732379
+                                     WK-ANNUAL-BASE -             28732379
+                                        WK-1H-AMOUNT              28732379
+             IF  WK-ADJ-ANNUAL-WAGE-AMT <= 0                      28732379
+                 MOVE 0 TO WK-ADJ-ANNUAL-WAGE-AMT                 28732379
+             END-IF                                               28732379
+     ELSE                                                         28732379
+**** EMPLOYEE HAS 2019 OR EARLIER W4 FORM                         28732379
+             COMPUTE WK-1K-AMOUNT  = KFED-FEDTAX-EXEMPT *         28732379
+                                        WK-PERSONAL-ALLOWANCE     28732379
+             COMPUTE WK-ADJ-ANNUAL-WAGE-AMT =                     28732379
+                                     WK-ANNUAL-BASE -             28732379
+                                        WK-1K-AMOUNT              28732379
+             IF  WK-ADJ-ANNUAL-WAGE-AMT <= 0                      28732379
+                 MOVE 0 TO WK-ADJ-ANNUAL-WAGE-AMT                 28732379
+             END-IF                                               28732379
+     END-IF.                                                      28732379
+                                                                  28732379
      SKIP1                                                        PPFEDTAX
      IF      KFED-BASE < ZEROS                                    PPFEDTAX
              MOVE ZEROS TO KFED-BASE                              PPFEDTAX
      END-IF.                                                      PPFEDTAX
      IF      KFED-FDTX-EXEMPT-EXMPT-FED-TX                        PPFEDTAX
        OR   (KFED-FDTX-EXEMPT-W4E-ON-FILE AND                     PPFEDTAX
-             NOT KFED-CT-CODE-NONR-ALN-SPECCTRY AND               69761691
+             NOT KFED-CT-CODE-NONR-ALN-SPECCTRY AND               69760691
              NOT KFED-CT-CODE-NON-RESID-ALIEN-T)                  PPFEDTAX
              MOVE ZEROS TO KFED-DED-TO-TAKE                       PPFEDTAX
      ELSE                                                         PPFEDTAX
-             IF   KFED-BASE NOT > XFTA-SALARY (S4, S5)            PPFEDTAX
-                  MOVE ZEROS TO KFED-DED-TO-TAKE                  PPFEDTAX
-                                WS-DED-TO-TAKE                    28311915
-                  PERFORM 2000-CALC-NRA-DEDUCTION THRU 2000-EXIT  28311915
-                  MOVE WS-DED-TO-TAKE TO KFED-DED-TO-TAKE         28311915
-             ELSE                                                 PPFEDTAX
+*****        IF   KFED-BASE NOT > XFTA-SALARY (S4, S5)            28732379
+             IF   WK-ADJ-ANNUAL-WAGE-AMT                          28732379
+                            NOT > XFTA-SALARY (S4, S5)            28732379
+                  MOVE ZEROS TO KFED-DED-TO-TAKE                  28732379
+                                WS-DED-TO-TAKE                    28732379
+*****             PERFORM 2000-CALC-NRA-DEDUCTION THRU 2000-EXIT  28732379
+                  MOVE WS-DED-TO-TAKE TO KFED-DED-TO-TAKE         28732379
+             ELSE                                                 28732379
                   PERFORM                                         PPFEDTAX
                     VARYING S5 FROM S5 BY +1                      PPFEDTAX
                       UNTIL S5 = S6                               PPFEDTAX
-                         OR XFTA-SALARY (S4, S5) > KFED-BASE      PPFEDTAX
+*****                    OR XFTA-SALARY (S4, S5) > KFED-BASE      28732379
+                         OR XFTA-SALARY (S4, S5) >                28732379
+                                      WK-ADJ-ANNUAL-WAGE-AMT      28732379
                   END-PERFORM                                     PPFEDTAX
                   ADD -1 TO S5                                    PPFEDTAX
 *****             COMPUTE KFED-DED-TO-TAKE ROUNDED =              69761691
                   COMPUTE WS-DED-TO-TAKE  ROUNDED =               69761691
-                  XFTA-TAX (S4, S5) + ((KFED-BASE -               PPFEDTAX
+*****             XFTA-TAX (S4, S5) + ((KFED-BASE -               28732379
+                  XFTA-TAX (S4, S5) + ((WK-ADJ-ANNUAL-WAGE-AMT -  28732379
                   XFTA-SALARY (S4, S5)) * XFTA-PCT (S4, S5))      PPFEDTAX
-                  PERFORM 2000-CALC-NRA-DEDUCTION THRU 2000-EXIT  28311915
+*****             PERFORM 2000-CALC-NRA-DEDUCTION THRU 2000-EXIT  28732379
+                  COMPUTE WS-DED-TO-TAKE  ROUNDED =               28732379
+                       WS-DED-TO-TAKE / WS-NUMBER-OF-PAY-PERIODS  28732379
+                                                                  28732379
+*****             TAX CREDITS                                     28732379
+                  IF  KFED-W4-2020-FORM = 1                       28732379
+                      MOVE KFED-W4-STEP3-AMT TO WK-3A-AMOUNT      28732379
+                  ELSE                                            28732379
+                      MOVE 0                 TO WK-3A-AMOUNT      28732379
+                  END-IF                                          28732379
+                                                                  28732379
+                  COMPUTE WK-3A-AMOUNT = WK-3A-AMOUNT /           28732379
+                                         WS-NUMBER-OF-PAY-PERIODS 28732379
+                                                                  28732379
+                  COMPUTE WS-DED-TO-TAKE  ROUNDED =               28732379
+                       WS-DED-TO-TAKE - WK-3A-AMOUNT              28732379
+                                                                  28732379
+                  IF  WS-DED-TO-TAKE < 0                          28732379
+                      MOVE 0 TO WS-DED-TO-TAKE                    28732379
+                  END-IF                                          28732379
+                                                                  28732379
+                  MOVE WS-DED-TO-TAKE  TO WK-DISPLAY-AMT          D
+                  DISPLAY 'WS-DED-TO-TAKE      :' WK-DISPLAY-AMT  D
+                                                                  28732379
                   MOVE WS-DED-TO-TAKE TO KFED-DED-TO-TAKE         69761691
                   IF WS-DED-TO-TAKE NOT = KFED-DED-TO-TAKE        69761691
                       MOVE M40090 TO KFED-MSSG-NO                 69761691
                   END-IF                                          69761691
-             END-IF                                               PPFEDTAX
+             END-IF                                               28732379
      END-IF.                                                      PPFEDTAX
      SKIP2                                                        PPFEDTAX
      SKIP2                                                        15611721
@@ -374,6 +522,27 @@
              GO TO 1500-EXIT                                      15611721
      END-IF.                                                      15611721
                                                                   15611721
+**** IF EMPLOYEE HAS 2020 W4 FORM, USE NEW SET OF NRA AMOUNTS     28732379
+**** TO BE ADDED TO GROSS BASED ON TAX PERIOD PASSED.             28732379
+     IF  KFED-W4-2020-FORM = 1                                    28732379
+         IF      KFED-TAX-PERIOD  = 'M'                           28732379
+                 ADD KFED-MO-PARM-AMT2     TO KFED-GROSS-FWT1     28732379
+                 DISPLAY 'ADDING NRA MO AMT:' KFED-MO-PARM-AMT2   D
+         ELSE                                                     28732379
+            IF      KFED-TAX-PERIOD = 'S'                         28732379
+                    ADD KFED-SM-PARM-AMT2  TO KFED-GROSS-FWT1     28732379
+            ELSE                                                  28732379
+              IF      KFED-TAX-PERIOD = 'B'                       28732379
+                      ADD KFED-BI-PARM-AMT2 TO KFED-GROSS-FWT1    28732379
+                 DISPLAY 'ADDING NRA BW AMT:' KFED-BI-PARM-AMT2   D
+              ELSE                                                28732379
+                      CONTINUE                                    28732379
+              END-IF                                              28732379
+            END-IF                                                28732379
+         END-IF                                                   28732379
+         GO TO 1500-EXIT                                          28732379
+     END-IF.                                                      28732379
+                                                                  28732379
      IF      KFED-TAX-PERIOD  = 'M'                               15611721
              ADD KFED-MO-PARM-AMT      TO KFED-GROSS-FWT1         15611721
      ELSE                                                         15611721
@@ -391,20 +560,25 @@
  1500-EXIT.                                                       15611721
      EXIT.                                                        15611721
                                                                   15611721
- 2000-CALC-NRA-DEDUCTION.                                         28311915
-                                                                  28311915
+***                                                               28732379
+*** COMMENTING OUT THIS PARA SINCE IT IS OBSOLETE AND WILL        28732379
+*** CAUSE COMPILE ERRORS BECAUSE OF CHANGES TO XFTA               28732379
+***                                                               28732379
+*2000-CALC-NRA-DEDUCTION.                                         28732379
+*                                                                 28732379
 **** CALCULATE ADDITIONAL FEDERAL TAX FOR NRA                     28311915
-     IF KFED-CT-CODE-NON-RESID-ALIEN-T OR                         28311915
-        KFED-CT-CODE-NONR-ALN-SPECCTRY                            28311915
-        COMPUTE S6 = XFTA-NO-NRALIEN (S4) + 23                    28311915
-        PERFORM VARYING S5 FROM 23 BY +1                          28311915
-          UNTIL XFTA-SALARY (S4, S5) > KFED-BASE OR (S5 = S6)     28311915
-        END-PERFORM                                               28311915
-        ADD -1                  TO S5                             28311915
-        COMPUTE WS-DED-TO-TAKE ROUNDED = WS-DED-TO-TAKE +         28311915
-                 XFTA-TAX (S4, S5)     + ((KFED-BASE    -         28311915
-                 XFTA-SALARY (S4, S5)) * XFTA-PCT (S4, S5))       28311915
-     END-IF.                                                      28311915
-                                                                  28311915
- 2000-EXIT.                                                       28311915
-     EXIT.                                                        28311915
+*                                                                 28732379
+*    IF KFED-CT-CODE-NON-RESID-ALIEN-T OR                         28732379
+*       KFED-CT-CODE-NONR-ALN-SPECCTRY                            28732379
+*       COMPUTE S6 = XFTA-NO-NRALIEN (S4) + 23                    28732379
+*       PERFORM VARYING S5 FROM 23 BY +1                          28732379
+*         UNTIL XFTA-SALARY (S4, S5) > KFED-BASE OR (S5 = S6)     28732379
+*       END-PERFORM                                               28732379
+*       ADD -1                  TO S5                             28732379
+*       COMPUTE WS-DED-TO-TAKE ROUNDED = WS-DED-TO-TAKE +         28732379
+*                XFTA-TAX (S4, S5)     + ((KFED-BASE    -         28732379
+*                XFTA-SALARY (S4, S5)) * XFTA-PCT (S4, S5))       28732379
+*    END-IF.                                                      28732379
+*                                                                 28732379
+*2000-EXIT.                                                       28732379
+*    EXIT.                                                        28732379
