@@ -1,0 +1,410 @@
+**************************************************************/   28311915
+*  PROGRAM: PPFEDTAX                                         */   28311915
+*  RELEASE: ___1915______ SERVICE REQUEST(S): ____82831____  */   28311915
+*  NAME:_BASKAR CHITRAVEL MODIFICATION DATE:  ___03/30/10__  */   28311915
+*  DESCRIPTION:                                              */   28311915
+*  CALCULATE AND ADD THE ADDITIONAL TAX FOR NRAS USING INPUT */   28311915
+*  NRA RATE SET LOADED INTO CPWSXFTA'S FEDTAX TABLE ARRAY.   */   28311915
+**************************************************************/   28311915
+**************************************************************/   15611721
+*  PROGRAM: PPFEDTAX                                         */   15611721
+*  RELEASE: ___1721______ SERVICE REQUEST(S): ____81561____  */   15611721
+*  NAME:_____RGLASER_____ MODIFICATION DATE:  ___07/05/06__  */   15611721
+*  DESCRIPTION:                                              */   15611721
+*  ADD LOGIC TO INCREASE NRA EMPLOYEE'S GROSS AMT BEFORE THE */   15611721
+*  COMPUTATION OF FEDERAL WITHHOLDING TAX.  THE AMOUNT THAT  */   15611721
+*  IS ADDED COMES FROM 1 OF 3 NEW SYSTEM PARMS AND DEPENDS   */   15611721
+*  ON THE EMPLOYEE'S PAYROLL SCHEDULE.  THIS CHANGE IS       */   15611721
+*  REQUIRED IN ORDER TO REMAIN IN COMPLAINCE WITH IRS        */   15611721
+*  REGULATIONS IN RESPECT TO THE AMOUNT WITHHELD FOR NRA     */   15611721
+*  EMPLOYEES. THE INCREASED GROSS AMT IS NOT CARRIED FURTHER.*/   15611721
+*  THE INCREASED GROSS AMT IS NOT CARRIED FOR FURTHER        */   15611721
+*  PROCESSING.                                               */   15611721
+**************************************************************/   15611721
+**************************************************************/   69761691
+*  PROGRAM: PPFEDTAX                                         */   69761691
+*  RELEASE: ___1691______ SERVICE REQUEST(S): __16976,16963  */   69761691
+*  NAME:________JLT______ MODIFICATION DATE:  ___01/12/06__  */   69761691
+*  DESCRIPTION:                                              */   69761691
+*  -TREAT CITIZEN CODE "A" IN THE SAME MANNER AS 'N' IN MOST */   69761691
+*   CASES.                                                   */   69761691
+*  -REMOVE THE BACKING OUT OF FEL GROSS FROM PRIMARY FWT GRS.*/   69761691
+*   (I.E., THE 'FEL' DOS FWT SUBJECT GRS IND IS NOW SET OFF).*/   69761691
+*  - GENERATE A MESSAGE IF THE FWT EXCEEDS $99,999.99.       */   69761691
+**************************************************************/   69761691
+**************************************************************/   69331612
+*  PROGRAM: PPFEDTAX                                         */   69331612
+*  RELEASE: ___1612______ SERVICE REQUEST(S): ___16933_____  */   69331612
+*  NAME:________JLT______ MODIFICATION DATE:  ___10/20/04__  */   69331612
+*  DESCRIPTION:                                              */   69331612
+*  - ADD PROCESSING FOR FELLOWSHIP GROSS (POSTDOC).          */   69331612
+**************************************************************/   69331612
+**************************************************************/   48861503
+*  PROGRAM:  PPFEDTAX                                        */   48861503
+*  RELEASE: ___1503______ SERVICE REQUEST(S): ____14886____  */   48861503
+*  NAME:___S.ISAACS______ MODIFICATION DATE:  ___07/23/03__  */   48861503
+*   DESCRIPTION:                                             */   48861503
+*     ADDED CAPABILITY TO HANDLE FED FLAT TAX ON BONUSES     */   48861503
+*      IF REQUIRED.                                          */   48861503
+**************************************************************/   36100633
+*  PROGRAM:  PPFEDTAX                                        */   36100633
+*  RELEASE # ___0633___   SERVICE REQUEST NO(S)____3610______*/   36100633
+*  NAME __SRS__________   MODIFICATION DATE ____07/24/91_____*/   36100633
+*  DESCRIPTION                                               */   36100633
+*                                                            */   36100633
+*  THIS IS A NEW PROGRAM FOR ORCA                            */   36100633
+*                                                            */   36100633
+**************************************************************/   36100633
+ IDENTIFICATION DIVISION.                                         PPFEDTAX
+ PROGRAM-ID. PPFEDTAX.                                            PPFEDTAX
+ INSTALLATION. UNIVERSITY OF CALIFORNIA.                          PPFEDTAX
+ AUTHOR.                                                          PPFEDTAX
+ DATE-WRITTEN.                                                    PPFEDTAX
+ DATE-COMPILED.                                                   PPFEDTAX
+*REMARKS.                                                         PPFEDTAX
+******************************************************************PPFEDTAX
+*                                                                *PPFEDTAX
+*  THIS MODULE COMPUTES FEDERAL TAXES.                           *PPFEDTAX
+*                                                                *PPFEDTAX
+******************************************************************PPFEDTAX
+ ENVIRONMENT DIVISION.                                            PPFEDTAX
+     SKIP3                                                        PPFEDTAX
+******************************************************************PPFEDTAX
+*                                                                *PPFEDTAX
+*                         DATA DIVISION                          *PPFEDTAX
+*                                                                *PPFEDTAX
+******************************************************************PPFEDTAX
+ DATA DIVISION.                                                   PPFEDTAX
+     SKIP1                                                        PPFEDTAX
+******************************************************************PPFEDTAX
+*                                                                *PPFEDTAX
+*                    WORKING-STORAGE SECTION                     *PPFEDTAX
+*                                                                *PPFEDTAX
+******************************************************************PPFEDTAX
+ WORKING-STORAGE SECTION.                                         PPFEDTAX
+     SKIP1                                                        PPFEDTAX
+ 77  S4                           PIC S9(4)  COMP.                PPFEDTAX
+ 77  S5                           PIC S9(4)  COMP.                PPFEDTAX
+ 77  S6                           PIC S9(4)  COMP.                PPFEDTAX
+ 77  M40020                       PIC 9(05)  VALUE 40020.         PPFEDTAX
+ 77  M40090                       PIC 9(05)  VALUE 40090.         69761691
+ 77  WK-TOT-FWT-ADJ-GRS           PIC S9(7)V99  COMP-3.           69331612
+ 77  WS-DED-TO-TAKE               PIC S9(7)V99  COMP-3.           69761691
+     EJECT                                                        PPFEDTAX
+******************************************************************PPFEDTAX
+*                                                                *PPFEDTAX
+*                    LINKAGE SECTION                             *PPFEDTAX
+*                                                                *PPFEDTAX
+******************************************************************PPFEDTAX
+ LINKAGE SECTION.                                                 PPFEDTAX
+ 01  FEDERAL-TAX-AREA.                                            PPFEDTAX
+                                  COPY CPWSXFTA.                  PPFEDTAX
+     EJECT                                                        PPFEDTAX
+ 01  FEDERAL-TAX-INTERFACE.                                       PPFEDTAX
+                                  COPY CPLNKFED.                  PPFEDTAX
+     EJECT                                                        PPFEDTAX
+******************************************************************PPFEDTAX
+*                                                                *PPFEDTAX
+*                       PROCEDURE DIVISION                       *PPFEDTAX
+*                                                                *PPFEDTAX
+******************************************************************PPFEDTAX
+     SKIP2                                                        PPFEDTAX
+ PROCEDURE DIVISION       USING FEDERAL-TAX-AREA                  PPFEDTAX
+                                FEDERAL-TAX-INTERFACE.            PPFEDTAX
+     SKIP2                                                        PPFEDTAX
+ 0100-FEDERAL-TAX-ROUTINE  SECTION.                               69331612
+ 0100-FEDERAL-TAX-DEDUCTION.                                      PPFEDTAX
+     SKIP1                                                        PPFEDTAX
+     MOVE  ZERO    TO KFED-FEL-FWT-DED-TO-TAKE.                   69331612
+     IF      KFED-POSTDOC-FEL-NRA-GRS  > ZERO                     69331612
+             PERFORM  1000-POSTDOC-FEL-NRA-DED                    69331612
+     END-IF.                                                      69331612
+     SKIP1                                                        15611721
+     IF      KFED-CT-CODE-NON-RESID-ALIEN-T                       15611721
+     OR      KFED-CT-CODE-NONR-ALN-SPECCTRY                       15611721
+             PERFORM  1500-NRA-DED-PROCESSING                     15611721
+             THRU     1500-EXIT                                   15611721
+     END-IF.                                                      15611721
+     IF      KFED-GROSS-FWT1  < ZERO                              PPFEDTAX
+             COMPUTE KFED-GROSS-FWT2 =                            PPFEDTAX
+                     KFED-GROSS-FWT2 + KFED-GROSS-FWT1            PPFEDTAX
+             MOVE ZEROS             TO KFED-GROSS-FWT1            PPFEDTAX
+     END-IF.                                                      PPFEDTAX
+     SKIP1                                                        PPFEDTAX
+     IF      KFED-GROSS-FWT2  < ZERO                              PPFEDTAX
+             COMPUTE KFED-GROSS-FWT1 =                            PPFEDTAX
+                     KFED-GROSS-FWT1 + KFED-GROSS-FWT2            PPFEDTAX
+             MOVE ZEROS             TO KFED-GROSS-FWT2            PPFEDTAX
+     END-IF.                                                      PPFEDTAX
+     SKIP1                                                        48861503
+     IF      KFED-GROSS-FWT3  < ZERO                              48861503
+             COMPUTE KFED-GROSS-FWT1 =                            48861503
+                     KFED-GROSS-FWT1 + KFED-GROSS-FWT3            48861503
+             MOVE ZEROS             TO KFED-GROSS-FWT3            48861503
+     END-IF.                                                      48861503
+     SKIP1                                                        PPFEDTAX
+     IF      KFED-GROSS-FWT1 = ZEROS                              PPFEDTAX
+             MOVE KFED-REDUCTIONS-FWT TO KFED-AMOUNT              PPFEDTAX
+         IF  KFED-REDUCTIONS-FWT < ZERO                           PPFEDTAX
+             NEXT SENTENCE                                        PPFEDTAX
+         ELSE                                                     PPFEDTAX
+             MOVE ZEROS TO KFED-DED-TO-TAKE                       PPFEDTAX
+             GO TO 0500-FEDERAL-TAX-GROSS                         PPFEDTAX
+         END-IF                                                   PPFEDTAX
+     END-IF.                                                      PPFEDTAX
+     SKIP1                                                        PPFEDTAX
+     PERFORM                                                      PPFEDTAX
+        VARYING S4 FROM 1 BY 1                                    PPFEDTAX
+          UNTIL XFTA-PERIOD (S4) = KFED-TAX-PERIOD                PPFEDTAX
+             OR S4 > 4                                            PPFEDTAX
+     END-PERFORM.                                                 PPFEDTAX
+     SKIP2                                                        PPFEDTAX
+     IF      S4 > +4                                              PPFEDTAX
+             MOVE +1 TO S4                                        PPFEDTAX
+             MOVE M40020 TO KFED-MSSG-NO                          PPFEDTAX
+     END-IF.                                                      PPFEDTAX
+     SKIP1                                                        PPFEDTAX
+******************************************************************PPFEDTAX
+*    IF  TAX PERIOD INPUT BY USER IS NOT MATCHED - DEFAULT TO THE PPFEDTAX
+*    FIRST TAX TABLE LOADED FOR THIS CYCLE - ISSUE MESSAGE TO     PPFEDTAX
+*    USER - AND CONTINUE TO PROCESSING - S4 NOW POINTS            PPFEDTAX
+*    TO THE PROPER TAX TABLE - S5 WILL LATER POINT TO THE ITEM    PPFEDTAX
+*    IN THE TAX TABLE - MARRIED STARTS AT POSITION 12 - SINGLE    PPFEDTAX
+*    POSITION 1. S6 WILL POINT TO END OF TABLE (S=11, M=22).      PPFEDTAX
+******************************************************************PPFEDTAX
+     SKIP1                                                        PPFEDTAX
+     IF      KFED-GROSS-FWT1 > ZEROS                              PPFEDTAX
+         OR  KFED-AMOUNT  <  ZEROES                               PPFEDTAX
+             COMPUTE KFED-BASE = KFED-GROSS-FWT1 -                PPFEDTAX
+                                        KFED-REDUCTIONS-FWT       PPFEDTAX
+             IF      KFED-BASE < ZEROS                            PPFEDTAX
+                     COMPUTE KFED-AMOUNT = - KFED-BASE            PPFEDTAX
+                     MOVE ZEROS TO KFED-BASE                      PPFEDTAX
+             ELSE                                                 PPFEDTAX
+                     MOVE ZEROS TO KFED-AMOUNT                    PPFEDTAX
+             END-IF                                               PPFEDTAX
+     ELSE                                                         PPFEDTAX
+             MOVE KFED-REDUCTIONS-FWT TO KFED-AMOUNT              PPFEDTAX
+             MOVE ZEROS TO KFED-BASE                              PPFEDTAX
+     END-IF.                                                      PPFEDTAX
+     SKIP1                                                        PPFEDTAX
+     IF      KFED-FEDTAX-MARITAL = 'M'                            PPFEDTAX
+     AND NOT KFED-CT-CODE-NON-RESID-ALIEN-T                       PPFEDTAX
+     AND NOT KFED-CT-CODE-NONR-ALN-SPECCTRY                       69761691
+             MOVE 12 TO S5                                        PPFEDTAX
+             COMPUTE S6 = XFTA-NO-MARRIED (S4) + 12               PPFEDTAX
+     ELSE                                                         PPFEDTAX
+             MOVE  1 TO S5                                        PPFEDTAX
+             COMPUTE S6 = XFTA-NO-SINGLES (S4) + 1                PPFEDTAX
+     END-IF.                                                      PPFEDTAX
+     SKIP1                                                        PPFEDTAX
+******************************************************************15611721
+* THE STATEMENT BELOW TREATS NON-RESIDENTS (CITIZENSHIP CODE OF N)15611721
+* AS IF THEY CLAIM ONLY 1 FED WITHHOLDING EXEMPTION AND IGNORES   15611721
+* WHAT THE EMPLOYEE CLAIMED FOR WITHHOLDING.                      15611721
+* WHEREAS FOR ALL OTHER CITIZENSHIP CODES INCLUDING CITIZENSHIP   15611721
+* CODES OF 'A', FED WITHHOLDING EXEMPTION CLAIMED BY THE EMPLOYEE 15611721
+* IS USED IN THE COMPUTATION OF THE BASE SALARY AMOUNT.           15611721
+******************************************************************15611721
+     IF      KFED-CT-CODE-NON-RESID-ALIEN-T                       PPFEDTAX
+             COMPUTE KFED-BASE = KFED-BASE - XFTA-EXEMPTION (S4)  PPFEDTAX
+     ELSE                                                         PPFEDTAX
+             COMPUTE KFED-BASE = KFED-BASE                        PPFEDTAX
+                    - (XFTA-EXEMPTION (S4) * KFED-FEDTAX-EXEMPT)  PPFEDTAX
+     END-IF.                                                      PPFEDTAX
+     SKIP1                                                        PPFEDTAX
+     IF      KFED-BASE < ZEROS                                    PPFEDTAX
+             MOVE ZEROS TO KFED-BASE                              PPFEDTAX
+     END-IF.                                                      PPFEDTAX
+     IF      KFED-FDTX-EXEMPT-EXMPT-FED-TX                        PPFEDTAX
+       OR   (KFED-FDTX-EXEMPT-W4E-ON-FILE AND                     PPFEDTAX
+             NOT KFED-CT-CODE-NONR-ALN-SPECCTRY AND               69761691
+             NOT KFED-CT-CODE-NON-RESID-ALIEN-T)                  PPFEDTAX
+             MOVE ZEROS TO KFED-DED-TO-TAKE                       PPFEDTAX
+     ELSE                                                         PPFEDTAX
+             IF   KFED-BASE NOT > XFTA-SALARY (S4, S5)            PPFEDTAX
+                  MOVE ZEROS TO KFED-DED-TO-TAKE                  PPFEDTAX
+                                WS-DED-TO-TAKE                    28311915
+                  PERFORM 2000-CALC-NRA-DEDUCTION THRU 2000-EXIT  28311915
+                  MOVE WS-DED-TO-TAKE TO KFED-DED-TO-TAKE         28311915
+             ELSE                                                 PPFEDTAX
+                  PERFORM                                         PPFEDTAX
+                    VARYING S5 FROM S5 BY +1                      PPFEDTAX
+                      UNTIL S5 = S6                               PPFEDTAX
+                         OR XFTA-SALARY (S4, S5) > KFED-BASE      PPFEDTAX
+                  END-PERFORM                                     PPFEDTAX
+                  ADD -1 TO S5                                    PPFEDTAX
+*****             COMPUTE KFED-DED-TO-TAKE ROUNDED =              69761691
+                  COMPUTE WS-DED-TO-TAKE  ROUNDED =               69761691
+                  XFTA-TAX (S4, S5) + ((KFED-BASE -               PPFEDTAX
+                  XFTA-SALARY (S4, S5)) * XFTA-PCT (S4, S5))      PPFEDTAX
+                  PERFORM 2000-CALC-NRA-DEDUCTION THRU 2000-EXIT  28311915
+                  MOVE WS-DED-TO-TAKE TO KFED-DED-TO-TAKE         69761691
+                  IF WS-DED-TO-TAKE NOT = KFED-DED-TO-TAKE        69761691
+                      MOVE M40090 TO KFED-MSSG-NO                 69761691
+                  END-IF                                          69761691
+             END-IF                                               PPFEDTAX
+     END-IF.                                                      PPFEDTAX
+     SKIP2                                                        PPFEDTAX
+     SKIP2                                                        15611721
+ 0500-FEDERAL-TAX-GROSS.                                          PPFEDTAX
+     SKIP1                                                        PPFEDTAX
+***  IF      KFED-GROSS-FWT2 > ZEROS                              48861503
+***          COMPUTE KFED-BASE = KFED-GROSS-FWT2 - KFED-AMOUNT    48861503
+***          IF      KFED-BASE < ZEROS                            48861503
+***                  MOVE ZEROS TO KFED-BASE                      48861503
+***          ELSE    NEXT SENTENCE                                48861503
+***          END-IF                                               48861503
+***  ELSE                                                         48861503
+***          MOVE ZEROS TO KFED-BASE                              48861503
+***  END-IF.                                                      48861503
+***  SKIP1                                                        48861503
+***  MOVE ZEROS TO KFED-AMOUNT.                                   48861503
+***  COMPUTE KFED-WRKPCT = KFED-FLAT-FWT-PERCENT / 100.           48861503
+***  COMPUTE KFED-DED-TO-TAKE ROUNDED =  KFED-DED-TO-TAKE +       48861503
+***                                     (KFED-BASE * KFED-WRKPCT).48861503
+***  SKIP1                                                        48861503
+     SKIP1                                                        48861503
+     IF      KFED-GROSS-FWT2 > ZEROS                              48861503
+       IF KFED-AMOUNT >= KFED-GROSS-FWT2                          48861503
+             COMPUTE KFED-AMOUNT = KFED-AMOUNT - KFED-GROSS-FWT2  48861503
+             MOVE ZEROS TO KFED-BASE                              48861503
+       ELSE                                                       48861503
+             COMPUTE KFED-BASE = KFED-GROSS-FWT2 - KFED-AMOUNT    48861503
+             MOVE ZEROS TO KFED-AMOUNT                            48861503
+            COMPUTE KFED-WRKPCT = KFED-FLAT-FWT-PERCENT / 100     48861503
+*****       COMPUTE KFED-DED-TO-TAKE ROUNDED = KFED-DED-TO-TAKE + 69761691
+*****                                   (KFED-BASE * KFED-WRKPCT) 69761691
+            COMPUTE WS-DED-TO-TAKE  ROUNDED =                     69761691
+              KFED-DED-TO-TAKE + (KFED-BASE * KFED-WRKPCT)        69761691
+            MOVE WS-DED-TO-TAKE TO KFED-DED-TO-TAKE               69761691
+            IF WS-DED-TO-TAKE NOT = KFED-DED-TO-TAKE              69761691
+                MOVE M40090 TO KFED-MSSG-NO                       69761691
+            END-IF                                                69761691
+       END-IF                                                     48861503
+     ELSE                                                         48861503
+             MOVE ZEROS TO KFED-BASE                              48861503
+     END-IF.                                                      48861503
+     SKIP1                                                        48861503
+     MOVE ZEROS TO KFED-AMOUNT.                                   48861503
+     SKIP1                                                        48861503
+     IF      KFED-GROSS-FWT3 > ZEROS                              48861503
+       IF KFED-AMOUNT >= KFED-GROSS-FWT3                          48861503
+             COMPUTE KFED-AMOUNT = KFED-AMOUNT - KFED-GROSS-FWT3  48861503
+             MOVE ZEROS TO KFED-BASE                              48861503
+       ELSE                                                       48861503
+             COMPUTE KFED-BASE = KFED-GROSS-FWT3 - KFED-AMOUNT    48861503
+             MOVE ZEROS TO KFED-AMOUNT                            48861503
+            COMPUTE KFED-WRKPCT = KFED-FLAT-BFWT-PERCENT / 100    48861503
+*****       COMPUTE KFED-DED-TO-TAKE ROUNDED = KFED-DED-TO-TAKE + 69761691
+*****                                   (KFED-BASE * KFED-WRKPCT) 69761691
+            COMPUTE WS-DED-TO-TAKE  ROUNDED =                     69761691
+              KFED-DED-TO-TAKE + (KFED-BASE * KFED-WRKPCT)        69761691
+            MOVE WS-DED-TO-TAKE TO KFED-DED-TO-TAKE               69761691
+            IF WS-DED-TO-TAKE NOT = KFED-DED-TO-TAKE              69761691
+                MOVE M40090 TO KFED-MSSG-NO                       69761691
+            END-IF                                                69761691
+       END-IF                                                     48861503
+     ELSE                                                         48861503
+             MOVE ZEROS TO KFED-BASE                              48861503
+     END-IF.                                                      48861503
+     SKIP1                                                        48861503
+     MOVE ZEROS TO KFED-AMOUNT.                                   48861503
+     SKIP1                                                        48861503
+     IF KFED-DED-TO-TAKE <  ZERO                                  PPFEDTAX
+       OR  KFED-FDTX-EXEMPT-EXMPT-FED-TX                          PPFEDTAX
+       OR (KFED-FDTX-EXEMPT-W4E-ON-FILE AND                       PPFEDTAX
+           NOT KFED-CT-CODE-NON-RESID-ALIEN-T)                    PPFEDTAX
+           MOVE ZERO TO KFED-DED-TO-TAKE                          PPFEDTAX
+     END-IF.                                                      PPFEDTAX
+     SKIP2.                                                       PPFEDTAX
+     GOBACK.                                                      PPFEDTAX
+                                                                  69331612
+*---------------------------------------------------------------  69331612
+ 1000-POSTDOC-FEL-NRA-DED  SECTION.                               69331612
+*---------------------------------------------------------------  69331612
+********E FEL GROSS IS ALREADY INCLUDED IN FWT1 GROSS. THUS, WE   69761691
+********VE TO BACK IT OUT OF THE FWT1 GROSS BEFORE WE CAN DEVELOP 69761691
+********SEPARATE POSTDOC FWT FEL DEDUCTION.                       69761691
+**** COMPUTE WK-TOT-FWT-ADJ-GRS  =  KFED-GROSS-FWT1               69761691
+****                             +  KFED-GROSS-FWT2               69761691
+****                             +  KFED-GROSS-FWT3               69761691
+****                             -  KFED-REDUCTIONS-FWT.          69761691
+**** IF      WK-TOT-FWT-ADJ-GRS  >  KFED-POSTDOC-FEL-NRA-GRS      69761691
+****     COMPUTE  KFED-GROSS-FWT1  =                              69761691
+****              KFED-GROSS-FWT1  - KFED-POSTDOC-FEL-NRA-GRS     69761691
+**** ELSE                                                         69761691
+****     MOVE ZERO     TO KFED-GROSS-FWT1,                        69761691
+****                      KFED-GROSS-FWT2,                        69761691
+****                      KFED-GROSS-FWT3,                        69761691
+****                      KFED-REDUCTIONS-FWT                     69761691
+****     IF  WK-TOT-FWT-ADJ-GRS  >  ZERO                          69761691
+****         MOVE WK-TOT-FWT-ADJ-GRS  TO KFED-POSTDOC-FEL-NRA-GRS 69761691
+****     ELSE                                                     69761691
+****         MOVE ZERO                TO KFED-POSTDOC-FEL-NRA-GRS 69761691
+****     END-IF                                                   69761691
+**** END-IF.                                                      69761691
+     IF      KFED-POSTDOC-FEL-NRA-GRS  > ZERO                     69331612
+*****   COMPUTE  KFED-FEL-FWT-DED-TO-TAKE  ROUNDED =              69761691
+        COMPUTE  WS-DED-TO-TAKE  ROUNDED =                        69761691
+                (KFED-POSTDOC-FEL-NRA-GRS  *                      69331612
+                 KFED-POSTDOC-FEL-NRA-RATE)                       69331612
+        MOVE WS-DED-TO-TAKE TO KFED-FEL-FWT-DED-TO-TAKE           69761691
+        IF WS-DED-TO-TAKE NOT = KFED-FEL-FWT-DED-TO-TAKE          69761691
+            MOVE M40090 TO KFED-MSSG-NO                           69761691
+        END-IF                                                    69761691
+     END-IF.                                                      69331612
+     IF      KFED-FDTX-EXEMPT-EXMPT-FED-TX                        69331612
+       OR   (KFED-FDTX-EXEMPT-W4E-ON-FILE AND                     69331612
+             NOT KFED-CT-CODE-NONR-ALN-SPECCTRY AND               69761691
+             NOT KFED-CT-CODE-NON-RESID-ALIEN-T)                  69331612
+             MOVE ZEROS   TO KFED-FEL-FWT-DED-TO-TAKE             69331612
+     END-IF.                                                      69331612
+ 1000-EXIT.      EXIT.                                            69331612
+                                                                  69331612
+ 1500-NRA-DED-PROCESSING SECTION.                                 15611721
+     SKIP1                                                        15611721
+                                                                  15611721
+     IF      KFED-CHECK-DATE  <  070101                           15611721
+             GO TO 1500-EXIT                                      15611721
+     END-IF.                                                      15611721
+                                                                  15611721
+     IF      KFED-GROSS-FWT1 < ZEROS                              15611721
+     OR      KFED-GROSS-FWT1 = ZEROES                             15611721
+             GO TO 1500-EXIT                                      15611721
+     END-IF.                                                      15611721
+                                                                  15611721
+     IF      KFED-TAX-PERIOD  = 'M'                               15611721
+             ADD KFED-MO-PARM-AMT      TO KFED-GROSS-FWT1         15611721
+     ELSE                                                         15611721
+        IF      KFED-TAX-PERIOD = 'S'                             15611721
+                ADD KFED-SM-PARM-AMT   TO KFED-GROSS-FWT1         15611721
+        ELSE                                                      15611721
+          IF      KFED-TAX-PERIOD = 'B'                           15611721
+                  ADD KFED-BI-PARM-AMT TO  KFED-GROSS-FWT1        15611721
+          ELSE                                                    15611721
+                  CONTINUE                                        15611721
+          END-IF                                                  15611721
+        END-IF                                                    15611721
+     END-IF.                                                      15611721
+                                                                  15611721
+ 1500-EXIT.                                                       15611721
+     EXIT.                                                        15611721
+                                                                  15611721
+ 2000-CALC-NRA-DEDUCTION.                                         28311915
+                                                                  28311915
+**** CALCULATE ADDITIONAL FEDERAL TAX FOR NRA                     28311915
+     IF KFED-CT-CODE-NON-RESID-ALIEN-T OR                         28311915
+        KFED-CT-CODE-NONR-ALN-SPECCTRY                            28311915
+        COMPUTE S6 = XFTA-NO-NRALIEN (S4) + 23                    28311915
+        PERFORM VARYING S5 FROM 23 BY +1                          28311915
+          UNTIL XFTA-SALARY (S4, S5) > KFED-BASE OR (S5 = S6)     28311915
+        END-PERFORM                                               28311915
+        ADD -1                  TO S5                             28311915
+        COMPUTE WS-DED-TO-TAKE ROUNDED = WS-DED-TO-TAKE +         28311915
+                 XFTA-TAX (S4, S5)     + ((KFED-BASE    -         28311915
+                 XFTA-SALARY (S4, S5)) * XFTA-PCT (S4, S5))       28311915
+     END-IF.                                                      28311915
+                                                                  28311915
+ 2000-EXIT.                                                       28311915
+     EXIT.                                                        28311915
